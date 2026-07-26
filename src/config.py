@@ -9,8 +9,17 @@ import os
 
 
 def _is_kaggle() -> bool:
-    """Detect if we're running inside a Kaggle notebook environment."""
-    return os.path.exists("/kaggle/input") or os.environ.get("KAGGLE_KERNEL_RUN_TYPE") is not None
+    """
+    Detect if we're running inside a Kaggle notebook environment.
+
+    NOTE: we deliberately do NOT check os.path.exists("/kaggle/input") —
+    Colab's container image pre-creates an empty /kaggle folder as part
+    of its own Kaggle-dataset-import integration, which causes false
+    positives there. KAGGLE_KERNEL_RUN_TYPE is only ever set when code is
+    actually executing inside a real Kaggle kernel, so it's the reliable
+    signal.
+    """
+    return os.environ.get("KAGGLE_KERNEL_RUN_TYPE") is not None
 
 
 def _is_colab() -> bool:
