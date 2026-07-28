@@ -1,8 +1,14 @@
-"""
-src/config.py
+##### src/config.py
 
-Central configuration for the Phi-4 Text Summarization project
-(repo: microsoft-phi-PEFT).
+# Central configuration for the Phi-4 Text Summarization project
+# (repo: microsoft-phi-PEFT).
+
+"""
+Design goals:
+- Single source of truth for paths and hyperparameters.
+- Auto-detects whether it's running on Kaggle, Colab, or locally, and adjusts paths accordingly.
+- Phi-4 is fully open-weight (MIT license) on Hugging Face — no auth token, no gated-access request, no login step required anywhere in this file.
+- Every other module (data_loader, preprocess, tokenizer, model, train, evaluate) should pull settings from here rather than hardcoding values.
 """
 
 import os
@@ -13,11 +19,8 @@ def _is_kaggle() -> bool:
     Detect if we're running inside a Kaggle notebook environment.
 
     NOTE: we deliberately do NOT check os.path.exists("/kaggle/input") —
-    Colab's container image pre-creates an empty /kaggle folder as part
-    of its own Kaggle-dataset-import integration, which causes false
-    positives there. KAGGLE_KERNEL_RUN_TYPE is only ever set when code is
-    actually executing inside a real Kaggle kernel, so it's the reliable
-    signal.
+    Colab's container image pre-creates an empty /kaggle folder as part of its own Kaggle-dataset-import integration, which causes false positives there.
+    KAGGLE_KERNEL_RUN_TYPE is only ever set when code is actually executing inside a real Kaggle kernel, so it's the reliable signal.
     """
     return os.environ.get("KAGGLE_KERNEL_RUN_TYPE") is not None
 
