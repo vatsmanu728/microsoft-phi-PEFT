@@ -1,9 +1,8 @@
-"""
-src/data_loader.py
+##### src/data_loader.py
 
-Loads the CNN/DailyMail train/validation/test CSVs (id, article, highlights)
-and subsamples them to the sizes defined in config.py, returning a single
-Hugging Face DatasetDict ready for preprocess.py.
+"""
+Loads the CNN/DailyMail train/validation/test CSVs (id, article, highlights) and subsamples them to the sizes defined in config.py,
+returns a single Hugging Face DatasetDict ready for preprocess.py.
 """
 
 import pandas as pd
