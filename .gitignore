@@ -1,0 +1,19 @@
+# datasets — train.csv is too large for git (1.2GB, over GitHub's 100MB hard limit)
+# validation.csv and test.csv ARE committed intentionally — small enough,
+# and lets anyone clone the repo and run evaluation immediately
+dataset/raw/train.csv
+dataset/processed/
+
+# models — never commit weights or adapters
+models/base/
+models/lora/
+
+# secrets/env
+.env
+*.key
+
+# python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+venv/
