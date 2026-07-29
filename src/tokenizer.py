@@ -5,10 +5,10 @@ Loads the Phi-4 tokenizer and converts (prompt, target) pairs from preprocess.py
 into tokenized (input_ids, attention_mask, labels) ready for causal LM fine-tuning.
 
 Key mechanics:
-- Uses tokenizer.apply_chat_template() to format the system prompt + user instruction with Phi-4's own special tokens 
+- Uses tokenizer.apply_chat_template() to format the system prompt + user instruction with Phi-4's own special tokens
   — we never hardcode <|...|> tokens ourselves, since guessing them wrong silently breaks training.
 - The target summary (+ eos_token) is appended after the chat-formatted prompt to form the full training sequence.
-- labels are a copy of input_ids with every prompt token (and every padding token) replaced by -100, 
+- labels are a copy of input_ids with every prompt token (and every padding token) replaced by -100,
   so the loss is only computed on the summary tokens the model is meant to learn to generate.
 """
 
@@ -39,7 +39,7 @@ class PhiTokenizer:
 
 def _build_prompt_text(tokenizer, system_prompt: str, user_prompt: str) -> str:
     """
-    Applies Phi-4's chat template to the system + user turns, with add_generation_prompt=True 
+    Applies Phi-4's chat template to the system + user turns, with add_generation_prompt=True
     so the returned string ends exactly where the assistant's reply (our target summary) should begin.
     """
     messages = [
@@ -55,7 +55,7 @@ def _build_prompt_text(tokenizer, system_prompt: str, user_prompt: str) -> str:
 
 def _tokenize_example(example, tokenizer, cfg) -> dict:
     """
-    Tokenizes a single (prompt, target) example into input_ids, attention_mask, and labels 
+    Tokenizes a single (prompt, target) example into input_ids, attention_mask, and labels
     (with prompt + padding masked to -100).
     """
     max_len = cfg["max_seq_length"]
@@ -85,7 +85,7 @@ def _tokenize_example(example, tokenizer, cfg) -> dict:
     # Mask the prompt portion — loss should only be computed on the summary.
     for i in range(prompt_len):
         labels[i] = -100
-    
+
     # Mask padding tokens too.
     for i, mask_val in enumerate(attention_mask):
         if mask_val == 0:
@@ -100,7 +100,7 @@ def _tokenize_example(example, tokenizer, cfg) -> dict:
 
 def tokenize_datasets(processed_datasets: DatasetDict) -> DatasetDict:
     """
-    Takes the DatasetDict from preprocess.preprocess_datasets() (columns: prompt, target) 
+    Takes the DatasetDict from preprocess.preprocess_datasets() (columns: prompt, target)
     and returns a DatasetDict with columns: input_ids, attention_mask, labels.
     """
     cfg = get_config()
