@@ -117,7 +117,7 @@ def get_config() -> dict:
         "weight_decay": 0.0,
         "lr_scheduler_type": "cosine",
         "logging_steps": 10,
-        "save_strategy": "epoch",
+        "save_strategy": "epoch",    # use save_strategy="steps", save_steps=50, if quota limit
         "eval_strategy": "epoch",
         "save_total_limit": 2,
         "bf16": True,
