@@ -20,7 +20,7 @@ def _clean_article_text(text: str) -> str:
     Light cleanup of raw CNN/DailyMail article text:
     - collapses repeated whitespace/newlines
     - strips leading/trailing whitespace
-    Does NOT truncate length — truncation to max_seq_length happens later in tokenizer.py, 
+    Does NOT truncate length — truncation to max_seq_length happens later in tokenizer.py,
     where it can be done in token space rather than character space.
     """
     text = re.sub(r"\s+", " ", text)
