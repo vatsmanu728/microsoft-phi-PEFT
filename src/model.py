@@ -4,6 +4,11 @@
 Loads Phi-4 in 4-bit precision (QLoRA) and attaches trainable LoRA adapters on top of the frozen base weights,
 using the quantization and LoRA settings defined in config.py.
 
+Fix note: device_map is forced to {"": 0} instead of "auto". 
+On amemory-constrained GPU (e.g. free-tier T4, 15GB), "auto" can decide to offload some layers to CPU/disk — 
+which bitsandbytes 4-bit quantization does not support without extra opt-in flags, causing a ValueError.
+Forcing everything onto GPU 0 avoids that split entirely.
+
 REQUIRES A GPU — 4-bit quantization still needs CUDA.
 """
 
@@ -54,9 +59,12 @@ def load_lora_model():
     base_model = AutoModelForCausalLM.from_pretrained(
         cfg["base_model_id"],
         quantization_config=bnb_config,
-        device_map="auto",
+        device_map={"": 0},          # fixed — was "auto". Now forces the entire quantized model onto GPU 0 rather than letting accelerate attempt a CPU/disk split that bitsandbytes 4-bit doesn't support.
         trust_remote_code=True,
+        low_cpu_mem_usage=True,      # reduces host RAM spike during load
+        attn_implementation="sdpa",  # flash-attn2 unsupported on Turing/T4; sdpa is the efficient option that works
     )
+
 
     # Required prep step before attaching LoRA to a k-bit (4-bit) model —
     # handles things like casting layer norms to fp32 for stability.
