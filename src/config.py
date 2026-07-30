@@ -9,6 +9,11 @@ Design goals:
 - Auto-detects whether it's running on Kaggle, Colab, or locally, and adjusts paths accordingly.
 - Phi-4 is fully open-weight (MIT license) on Hugging Face — no auth token, no gated-access request, no login step required anywhere in this file.
 - Every other module (data_loader, preprocess, tokenizer, model, train, evaluate) should pull settings from here rather than hardcoding values.
+
+FP16 NOTE: bnb_4bit_compute_dtype, bf16, and fp16 below were changed from the original bf16 setup.
+The free-tier T4 GPU is Turing-generation hardware (compute capability 7.5) and lacks real bf16 tensor core support
+— bf16 either runs inefficiently or falls back to a slow path on this hardware.
+  fp16 is the correct choice for T4 specifically.
 """
 
 import os
@@ -17,7 +22,6 @@ import os
 def _is_kaggle() -> bool:
     """
     Detect if we're running inside a Kaggle notebook environment.
-
     NOTE: we deliberately do NOT check os.path.exists("/kaggle/input") —
     Colab's container image pre-creates an empty /kaggle folder as part of its own Kaggle-dataset-import integration, which causes false positives there.
     KAGGLE_KERNEL_RUN_TYPE is only ever set when code is actually executing inside a real Kaggle kernel, so it's the reliable signal.
@@ -91,7 +95,7 @@ def get_config() -> dict:
         "load_in_4bit": True,
         "bnb_4bit_quant_type": "nf4",
         "bnb_4bit_use_double_quant": True,
-        "bnb_4bit_compute_dtype": "bfloat16",
+        "bnb_4bit_compute_dtype": "float16",   # CHANGED from "bfloat16" — T4 lacks real bf16 support
 
         "lora_r": 16,
         "lora_alpha": 32,
@@ -100,7 +104,7 @@ def get_config() -> dict:
         "lora_bias": "none",
         "lora_task_type": "CAUSAL_LM",
 
-        "max_seq_length": 1024,
+        "max_seq_length": 512,       #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| cut from 1024/2048 (eats memory fast)
         "max_target_length": 256,
         "padding": "max_length",
         "truncation": True,
@@ -110,7 +114,7 @@ def get_config() -> dict:
 
         "per_device_train_batch_size": 1,
         "per_device_eval_batch_size": 1,
-        "gradient_accumulation_steps": 16,
+        "gradient_accumulation_steps": 16,   #(effective batch size)
         "num_train_epochs": 1,
         "learning_rate": 2e-4,
         "warmup_ratio": 0.03,
@@ -120,10 +124,14 @@ def get_config() -> dict:
         "save_strategy": "epoch",    # use save_strategy="steps", save_steps=50, if quota limit
         "eval_strategy": "epoch",
         "save_total_limit": 2,
-        "bf16": True,
+        ############## "bf16": True,
+        "bf16": False,               #|||||||||||||||||||||||||||||||||||| T4 is Turing (compute cap 7.5) — no real bf16 tensor core support, use fp16
+        "fp16": True,
         "gradient_checkpointing": True,
-        "optim": "paged_adamw_8bit",
+        "optim": "paged_adamw_8bit", # much lighter optimizer state than default adamw_torch
         "seed": 42,
+
+        "eval_accumulation_steps": 1,#|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| prevents eval-time OOM spikes
 
         "eval_num_samples": 500,
         "generation_max_new_tokens": 128,
