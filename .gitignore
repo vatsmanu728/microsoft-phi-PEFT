@@ -7,7 +7,7 @@ dataset/processed/
 # models — base weights never committed (too large, re-downloaded each session)
 models/base/
 
-# LoRA: only intermediate training checkpoints are ignored — 
+# LoRA: only intermediate training checkpoints are ignored —
 # the FINAL adapter (copied into models/lora/ after training completes) IS committed
 models/lora/checkpoint-*/
 
