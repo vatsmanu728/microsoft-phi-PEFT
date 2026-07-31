@@ -10,6 +10,15 @@ Key mechanics:
 - The target summary (+ eos_token) is appended after the chat-formatted prompt to form the full training sequence.
 - labels are a copy of input_ids with every prompt token (and every padding token) replaced by -100,
   so the loss is only computed on the summary tokens the model is meant to learn to generate.
+
+
+CRITICAL FIX:
+the target summary's token budget is reserved BEFORE the prompt is truncated,
+rather than truncating the concatenated prompt+target string as one blob.
+The old approach let long articles (common in CNN/DailyMail) consume
+the entire max_seq_length on their own, leaving zero room for the target
+— which fully masked ~83% of training examples (label = -100 for every position),
+producing undefined (nan) loss for those examples.
 """
 
 from transformers import AutoTokenizer
@@ -56,29 +65,37 @@ def _build_prompt_text(tokenizer, system_prompt: str, user_prompt: str) -> str:
 def _tokenize_example(example, tokenizer, cfg) -> dict:
     """
     Tokenizes a single (prompt, target) example into input_ids, attention_mask, and labels
-    (with prompt + padding masked to -100).
+    (with prompt + padding masked to -100), reserving max_target_length tokens for the target
+    BEFORE truncating the prompt — guaranteeing every example retains real target signal,
+    regardless of how long the source article is.
     """
     max_len = cfg["max_seq_length"]
+    max_target_len = cfg["max_target_length"]
     system_prompt = cfg["system_prompt"]
-
-    prompt_text = _build_prompt_text(tokenizer, system_prompt, example["prompt"])
-    full_text = prompt_text + example["target"] + tokenizer.eos_token
 
     # Tokenize the prompt alone (no padding/truncation) just to find its length,
     # so we know how many leading tokens in the full sequence to mask.
+    prompt_text = _build_prompt_text(tokenizer, system_prompt, example["prompt"])
     prompt_ids = tokenizer(prompt_text, add_special_tokens=False)["input_ids"]
-    prompt_len = min(len(prompt_ids), max_len)
 
-    tokenized = tokenizer(
-        full_text,
-        max_length=max_len,
-        truncation=True,
-        padding="max_length",
-        add_special_tokens=False,
-    )
+    # Reserve room for the target BEFORE truncating the prompt.
+    max_prompt_len = max_len - max_target_len
+    if len(prompt_ids) > max_prompt_len:
+        prompt_ids = prompt_ids[:max_prompt_len]  # keep the article's lead (most salient content)
 
-    input_ids = tokenized["input_ids"]
-    attention_mask = tokenized["attention_mask"]
+    target_ids = tokenizer(
+        example["target"] + tokenizer.eos_token, add_special_tokens=False
+    )["input_ids"]
+    target_ids = target_ids[: max_len - len(prompt_ids)]
+
+    input_ids = prompt_ids + target_ids
+    prompt_len = len(prompt_ids)
+
+    pad_id = tokenizer.pad_token_id
+    attention_mask = [1] * len(input_ids)
+    while len(input_ids) < max_len:
+        input_ids.append(pad_id)
+        attention_mask.append(0)
 
     labels = list(input_ids)
 
@@ -111,7 +128,7 @@ def tokenize_datasets(processed_datasets: DatasetDict) -> DatasetDict:
     for split_name, split_dataset in processed_datasets.items():
         tokenized[split_name] = split_dataset.map(
             lambda example: _tokenize_example(example, tokenizer, cfg),
-            remove_columns=split_dataset.column_names,  # drop prompt/target
+            remove_columns=split_dataset.column_names,      # drop prompt/target
             desc=f"Tokenizing {split_name}",
         )
 
@@ -119,8 +136,6 @@ def tokenize_datasets(processed_datasets: DatasetDict) -> DatasetDict:
 
 
 if __name__ == "__main__":
-    # Quick manual check: `python -m src.tokenizer` (or `!python -m src.tokenizer` in Colab)
-
     from src.data_loader import load_and_prepare_datasets
     from src.preprocess import preprocess_datasets
 
@@ -131,3 +146,8 @@ if __name__ == "__main__":
     sample = tokenized_datasets["train"][0]
     print("Input IDs (first 30):", sample["input_ids"][:30])
     print("Labels (first 30):", sample["labels"][:30])
+
+    fully_masked = sum(
+        1 for ex in tokenized_datasets["train"] if all(l == -100 for l in ex["labels"])
+    )
+    print(f"\nFully-masked examples in train set: {fully_masked} / {len(tokenized_datasets['train'])}")
