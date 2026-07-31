@@ -4,8 +4,8 @@
 Loads Phi-4 in 4-bit precision (QLoRA) and attaches trainable LoRA adapters on top of the frozen base weights,
 using the quantization and LoRA settings defined in config.py.
 
-Fix note: device_map is forced to {"": 0} instead of "auto". 
-On amemory-constrained GPU (e.g. free-tier T4, 15GB), "auto" can decide to offload some layers to CPU/disk — 
+Fix note: device_map is forced to {"": 0} instead of "auto".
+On amemory-constrained GPU (e.g. free-tier T4, 15GB), "auto" can decide to offload some layers to CPU/disk —
 which bitsandbytes 4-bit quantization does not support without extra opt-in flags, causing a ValueError.
 Forcing everything onto GPU 0 avoids that split entirely.
 
