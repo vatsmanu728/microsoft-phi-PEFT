@@ -3,11 +3,11 @@
 """
 Trains the LoRA-wrapped Phi-4 model using TrainingArguments/Trainer, with all hyperparameters pulled from config.py.
 Saves the resulting LoRA adapters (not the full model) to config['output_dir'].
-- fp16 (not bf16) is used for training precision — 
-  T4 is a Turing-architecture GPU with genuine fp16 Tensor Core support but only 
+- fp16 (not bf16) is used for training precision —
+  T4 is a Turing-architecture GPU with genuine fp16 Tensor Core support but only
   weak/emulated bf16 support.
 
-Resilience note: 
+Resilience note:
 save_strategy/save_steps are deliberately overridden here to "steps"/50, rather than using config.py's "epoch" setting.
 With num_train_epochs=1, "epoch"-based saving only checkpoints once, at the very end
 — meaning an interrupted Colab runtime (GPU quota, disconnect) before completion would lose 100% of progress.
