@@ -97,7 +97,7 @@ def get_config() -> dict:
         "bnb_4bit_use_double_quant": True,
         "bnb_4bit_compute_dtype": "float16",   # CHANGED from "bfloat16" — T4 lacks real bf16 support
 
-        "lora_r": 16,
+        "lora_r": 16,        # rank can be - 4/8/16/32/64
         "lora_alpha": 32,
         "lora_dropout": 0.05,
         "lora_target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"],
