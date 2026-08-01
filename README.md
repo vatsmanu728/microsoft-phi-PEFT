@@ -19,8 +19,8 @@ using **QLoRA** (4-bit quantization + LoRA adapters).
 - [Project Structure](#-project-structure)
 - [Setup](#-setup)
 - [Usage](#-usage)
-- [Resilience Features](#-resilience-features)
 - [Results](#-results)
+- [Resilience Features](#-resilience-features)
 - [Engineering Challenges & Solutions](#-engineering-challenges--solutions)
 - [Applications](#-applications)
 - [License](#-license)
@@ -80,14 +80,23 @@ flowchart LR
 ## Project structure
 
 microsoft-phi-PEFT/
+
 ├── dataset/
+
 │ ├── raw/       # train/validation/test CSVs (gitignored)
+
 │ └── processed/ # gitignored, regenerated at runtime
+
 ├── models/
+
 │ ├── base/   # gitignored
+
 │ └── lora/   # final adapters (committed) + checkpoints (gitignored)
+
 ├── src/
+
 │ ├── config.py      # central configuration — paths, hyperparameters
+
 │ ├── data_loader.py # CSV loading + reproducible subsampling
 │ ├── preprocess.py  # prompt/target pair construction
 │ ├── tokenizer.py   # tokenization + label masking
@@ -150,16 +159,6 @@ python -m src.model
 - On Colab: local disk is ephemeral (wiped on every runtime restart). LoRA adapters are saved to Google Drive so they persist across sessions.
 
 
-## Resilience Features
- 
-Built specifically for the reality of compute constraints — interruptions are treated as *expected*, not exceptional:
- 
-- ✅ **Checkpoint every 50 training steps**, not just at epoch-end
-- ✅ **Automatic resume** — reruns pick up exactly where a cut-off session left off
-- ✅ **Incremental evaluation saving** — a killed evaluation run resumes mid-test-set, not from zero
-- ✅ **Isolated smoke-testing** — every module is verified end-to-end before any full-scale run
-
-
 ## Results
  
 *ROUGE scores will be added here once the full training + evaluation run completes.*
@@ -169,6 +168,16 @@ Built specifically for the reality of compute constraints — interruptions are 
 | ROUGE-1 | TBD |
 | ROUGE-2 | TBD |
 | ROUGE-L | TBD |
+
+
+## Resilience Features
+ 
+Built specifically for the reality of compute constraints — interruptions are treated as *expected*, not exceptional:
+ 
+- ✅ **Checkpoint every 50 training steps**, not just at epoch-end
+- ✅ **Automatic resume** — reruns pick up exactly where a cut-off session left off
+- ✅ **Incremental evaluation saving** — a killed evaluation run resumes mid-test-set, not from zero
+- ✅ **Isolated smoke-testing** — every module is verified end-to-end before any full-scale run
 
 
 ## Engineering Challenges & Solutions
