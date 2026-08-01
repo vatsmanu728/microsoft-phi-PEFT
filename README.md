@@ -80,23 +80,14 @@ flowchart LR
 ## Project structure
 
 microsoft-phi-PEFT/
-
 ├── dataset/
-
 │ ├── raw/       # train/validation/test CSVs (gitignored)
-
 │ └── processed/ # gitignored, regenerated at runtime
-
 ├── models/
-
 │ ├── base/   # gitignored
-
 │ └── lora/   # final adapters (committed) + checkpoints (gitignored)
-
 ├── src/
-
 │ ├── config.py      # central configuration — paths, hyperparameters
-
 │ ├── data_loader.py # CSV loading + reproducible subsampling
 │ ├── preprocess.py  # prompt/target pair construction
 │ ├── tokenizer.py   # tokenization + label masking
