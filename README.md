@@ -79,24 +79,24 @@ flowchart LR
 
 ## Project structure
 
-microsoft-phi-PEFT/
-├── dataset/
-│ ├── raw/       # train/validation/test CSVs (gitignored)
-│ └── processed/ # gitignored, regenerated at runtime
-├── models/
-│ ├── base/   # gitignored
-│ └── lora/   # final adapters (committed) + checkpoints (gitignored)
-├── src/
-│ ├── config.py      # central configuration — paths, hyperparameters
-│ ├── data_loader.py # CSV loading + reproducible subsampling
-│ ├── preprocess.py  # prompt/target pair construction
-│ ├── tokenizer.py   # tokenization + label masking
-│ ├── model.py       # loads Phi-4 in 4-bit + LoRA attachment
-│ ├── train.py       # training loop (with checkpoints & interruption handling)
-│ └── evaluate.py    # ROUGE evaluation
-├── main.py             # full pipeline entry point
-├── evaluate_only.py    # evaluation only — requires existing adapters
-├── PROJECT_STATE.md    # current build status / handoff notes
+microsoft-phi-PEFT/                                                             \n
+├── dataset/                                                                    \n
+│ ├── raw/       # train/validation/test CSVs (gitignored)                      \n
+│ └── processed/ # gitignored, regenerated at runtime                           \n
+├── models/                                                                     \n
+│ ├── base/   # gitignored                                                      \n
+│ └── lora/   # final adapters1 (committed) + checkpoints (gitignored)          \n
+├── src/                                                                        \n
+│ ├── config.py      # central configuration — paths, hyperparameters           \n
+│ ├── data_loader.py # CSV loading + reproducible subsampling                   \n
+│ ├── preprocess.py  # prompt/target pair construction                          \n
+│ ├── tokenizer.py   # tokenization + label masking                             \n
+│ ├── model.py       # loads Phi-4 in 4-bit + LoRA attachment                   \n
+│ ├── train.py       # training loop (with checkpoints & interruption handling) \n
+│ └── evaluate.py    # ROUGE evaluation                                         \n
+├── main.py             # full pipeline entry point                             \n
+├── evaluate_only.py    # evaluation only — requires existing adapters          \n
+├── PROJECT_STATE.md    # current build status / handoff notes                  \n
 └── README.md
 
 
