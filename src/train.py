@@ -8,10 +8,10 @@ Saves the resulting LoRA adapters (not the full model) to config['output_dir'].
   weak/emulated bf16 support.
 
 Resilience note:
-save_strategy/save_steps are deliberately overridden here to "steps"/50, rather than using config.py's "epoch" setting.
+save_strategy/save_steps are deliberately overridden here to "steps"/10, rather than using config.py's "epoch" setting.
 With num_train_epochs=1, "epoch"-based saving only checkpoints once, at the very end
 — meaning an interrupted Colab runtime (GPU quota, disconnect) before completion would lose 100% of progress.
-Saving every ~50 steps means at most ~50 steps are ever at risk, and
+Saving every ~10 steps means at most ~10 steps are ever at risk, and
 train_model() automatically detects and resumes from the latest checkpoint if one exists.
 """
 
@@ -44,7 +44,7 @@ def _build_training_args(cfg: dict) -> TrainingArguments:
         logging_steps=cfg["logging_steps"],
         # save_strategy=cfg["save_strategy"],# overridden — to account for quota limit
         save_strategy="steps",               # added steps
-        save_steps=50,                       # 50 steps
+        save_steps=10,                       # use 10 steps
         eval_strategy=cfg["eval_strategy"],
         save_total_limit=cfg["save_total_limit"],
         fp16=cfg["fp16"],           # new — T4-appropriate precision
