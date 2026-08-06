@@ -45,10 +45,12 @@ def _build_training_args(cfg: dict) -> TrainingArguments:
         # save_strategy=cfg["save_strategy"],# overridden — to account for quota limit
         save_strategy="steps",               # added steps
         save_steps=10,                       # use 10 steps
-        eval_strategy=cfg["eval_strategy"],
+        # eval_strategy=cfg["eval_strategy"],
+        eval_strategy="steps",               # overridden — was "epoch"; now gives a validation loss reading during training, not just once at the very end
+        eval_steps=100,                      # deliberately coarser than save_steps=10 — Matching eval_steps to save_steps=10 would mean an eval every ~10 minutes of training, which would likely cost more total time than the training itself. eval_steps=100 (6 evals across the full epoch) is a much more reasonable middle ground — frequent enough to see a real trend, not so frequent it dominates your compute budget.
         save_total_limit=cfg["save_total_limit"],
-        fp16=cfg["fp16"],           # new — T4-appropriate precision
-        bf16=cfg["bf16"],           # new — explicitly False on T4
+        fp16=cfg["fp16"],           # new T4-appropriate precision
+        bf16=cfg["bf16"],           # — explicitly False on T4
         gradient_checkpointing=cfg["gradient_checkpointing"],
         optim=cfg["optim"],
         seed=cfg["seed"],
