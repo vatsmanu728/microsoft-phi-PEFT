@@ -66,8 +66,8 @@ def load_finetuned_model_and_tokenizer(cfg: dict, adapter_path: str = None):
     # written once, to the top-level output_dir, when training fully
     # completes). Loading from base_model_id works correctly whether
     # evaluating a checkpoint or the final adapter.
-    tokenizer = AutoTokenizer.from_pretrained(cfg["base_model_id"], trust_remote_code=True)
     
+    tokenizer = AutoTokenizer.from_pretrained(cfg["base_model_id"], trust_remote_code=True)
     # tokenizer = AutoTokenizer.from_pretrained(adapter_path) ########### This is bugged - load_finetuned_model_and_tokenizer() loads the tokenizer from adapter_path — the same path as the adapter itself. That's wrong: the tokenizer never changes across training, checkpoints, or fine-tuning at all — it should always come from the base model, independent of which checkpoint you're evaluating.
     
     if tokenizer.pad_token is None:
